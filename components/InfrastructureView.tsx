@@ -29,11 +29,11 @@ const domainSchema = z.object({
     name: z.string().min(3, { message: "Domain must be at least 3 characters." }).regex(/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: "Invalid domain format." }),
 });
 
-interface DomainsViewProps {
+interface InfrastructureViewProps {
     session: Session;
 }
 
-const DomainsView = ({ session }: DomainsViewProps) => {
+const InfrastructureView = ({ session }: InfrastructureViewProps) => {
     const [domains, setDomains] = React.useState<Domain[]>([]);
     const [inboxes, setInboxes] = React.useState<Inbox[]>([]);
     const [loading, setLoading] = React.useState(true);
@@ -319,4 +319,4 @@ const DomainsView = ({ session }: DomainsViewProps) => {
     );
 };
 
-export default DomainsView;
+export default InfrastructureView;
