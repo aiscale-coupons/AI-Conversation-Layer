@@ -36,7 +36,7 @@ const MessageCircleReplyIcon = ({ className }: IconProps) => (
 );
 
 // FIX: Replaced `JSX.Element` with `React.ReactElement` to resolve the "Cannot find namespace 'JSX'" error by explicitly using the imported React type.
-const navItems: { path: string; label: string; icon: (props: Icon-props) => React.ReactElement }[] = [
+const navItems: { path: string; label: string; icon: (props: IconProps) => React.ReactElement }[] = [
     { path: '/', label: 'Campaigns', icon: LayoutDashboardIcon },
     { path: '/contacts', label: 'Contacts', icon: UsersIcon },
     { path: '/sequences', label: 'Sequences', icon: ListOrderedIcon },
