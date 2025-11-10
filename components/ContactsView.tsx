@@ -114,7 +114,7 @@ const ContactsView = ({ session }: ContactsViewProps) => {
                 throw new Error("No valid contacts with emails found in the file.");
             }
 
-            const { error } = await supabase.from('contacts').insert(contactsToInsert);
+            const { error } = await supabase.from('contacts').upsert(contactsToInsert, { onConflict: 'email' });
 
             if (error) {
                 console.error("Supabase insert error:", error);
