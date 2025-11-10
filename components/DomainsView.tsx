@@ -82,7 +82,7 @@ const DomainsView = ({ session }: DomainsViewProps) => {
     }, []);
 
     const handleAddDomain = async () => {
-        if (!supabase) return;
+        if (!supabase || !session?.user) return;
 
         const validation = domainSchema.safeParse({ name: newDomainName });
         if (!validation.success) {
@@ -93,7 +93,8 @@ const DomainsView = ({ session }: DomainsViewProps) => {
         const { data: newDomain, error } = await supabase
             .from('domains')
             .insert({ 
-                name: newDomainName, 
+                name: newDomainName,
+                user_id: session.user.id, // FIX: Add the user_id to satisfy RLS policy
                 spf: false,
                 dkim: false,
                 dmarc: false,
@@ -104,7 +105,7 @@ const DomainsView = ({ session }: DomainsViewProps) => {
         if (error) {
             console.error("Error adding domain:", error);
             if (error.code === '23505') { // Handle unique constraint violation
-                toast.error("This domain has already been registered by another user.");
+                toast.error("This domain has already been registered.");
             } else {
                 toast.error(`Failed to add domain: ${error.message}`);
             }
