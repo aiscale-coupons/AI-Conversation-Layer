@@ -155,11 +155,12 @@ const DomainsView = ({ session }: DomainsViewProps) => {
                 window.location.href = response.url;
             } else {
                 const errorData = await response.json();
-                toast.error(`Failed to start inbox connection: ${errorData.error}`);
+                console.error('Error from google-auth-start:', errorData);
+                toast.error(`Failed to start inbox connection: ${errorData.error || 'Unknown error'}`);
             }
         } catch (error) {
-            toast.error("An unexpected error occurred.");
-            console.error(error);
+            toast.error("An unexpected error occurred. See console for details.");
+            console.error('Full error object:', error);
         }
     };
 
