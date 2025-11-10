@@ -1,0 +1,5 @@
+{
+  "name": "AI Conversation Layer",
+  "description": "An application to automate and personalize email outreach campaigns using AI for message generation and intelligent response management. It manages domains, inboxes, and multi-step email sequences with advanced personalization and compliance features.",
+  "requestFramePermissions": []
+}
