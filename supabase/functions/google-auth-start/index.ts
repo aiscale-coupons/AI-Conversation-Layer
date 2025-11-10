@@ -8,6 +8,16 @@ const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
 const GOOGLE_REDIRECT_URI = Deno.env.get("GOOGLE_REDIRECT_URI");
 
 serve(async (req) => {
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey',
+      },
+    })
+  }
+
   // This is needed to invoke the function as a user
   const client = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
@@ -20,14 +30,23 @@ serve(async (req) => {
   if (!user) {
     return new Response(JSON.stringify({ error: 'User not authenticated' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey',
+      },
     })
   }
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
     return new Response(
       JSON.stringify({ error: "Google OAuth credentials are not configured." }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey',
+        } 
+      }
     );
   }
 
