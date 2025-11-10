@@ -135,9 +135,32 @@ const DomainsView = ({ session }: DomainsViewProps) => {
         setVerifyingDomainId(null);
     };
 
-    const handleConnectInbox = () => {
-        // Redirect to the google-auth-start Edge Function
-        window.location.href = 'https://ypxntquggvgjbukgzkjw.supabase.co/functions/v1/google-auth-start';
+    const handleConnectInbox = async () => {
+        if (!supabase) return;
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+            toast.error("You must be logged in to connect an inbox.");
+            return;
+        }
+
+        try {
+            const response = await fetch('https://ypxntquggvgjbukgzkjw.supabase.co/functions/v1/google-auth-start', {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+            });
+
+            if (response.ok && response.redirected) {
+                window.location.href = response.url;
+            } else {
+                const errorData = await response.json();
+                toast.error(`Failed to start inbox connection: ${errorData.error}`);
+            }
+        } catch (error) {
+            toast.error("An unexpected error occurred.");
+            console.error(error);
+        }
     };
 
     return (
