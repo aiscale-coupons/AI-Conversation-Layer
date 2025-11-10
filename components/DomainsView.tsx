@@ -144,7 +144,7 @@ const DomainsView = ({ session }: DomainsViewProps) => {
     };
 
     const handleAddInbox = async () => {
-        if (!supabase) return;
+        if (!supabase || !session?.user) return;
 
         const validation = inboxSchema.safeParse({ email: newEmail });
         if (!validation.success) {
@@ -162,6 +162,7 @@ const DomainsView = ({ session }: DomainsViewProps) => {
         const newInboxData = {
             email: newEmail,
             domain: domain,
+            user_id: session.user.id, // FIX: Add the user_id to satisfy RLS policy
             status: 'warming' as const,
             daily_limit: 40,
         };
