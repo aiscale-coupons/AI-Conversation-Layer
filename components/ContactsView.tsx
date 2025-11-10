@@ -5,14 +5,19 @@ import toast from 'react-hot-toast';
 import DOMPurify from 'dompurify';
 import Spinner from './Spinner';
 
+import { Session } from '@supabase/supabase-js';
+
 const UploadIcon = ({ className }: {className?: string}) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>
     </svg>
 );
 
+interface ContactsViewProps {
+    session: Session;
+}
 
-const ContactsView = () => {
+const ContactsView = ({ session }: ContactsViewProps) => {
   const [contacts, setContacts] = React.useState<Contact[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [file, setFile] = React.useState<File | null>(null);
@@ -59,7 +64,7 @@ const ContactsView = () => {
         toast.error("Please select a file to import.");
         return;
     }
-    if (!supabase) return;
+    if (!supabase || !session?.user) return;
 
     setIsImporting(true);
     const toastId = toast.loading(`Importing contacts from ${file.name}...`);
@@ -93,7 +98,9 @@ const ContactsView = () => {
             
             const contactsToInsert = lines.map(line => {
                 const values = line.trim().split(',');
-                const contactObject: { [key: string]: string } = {};
+                const contactObject: { [key: string]: any } = {
+                    user_id: session.user.id // FIX: Add user_id to satisfy RLS
+                };
                 header.forEach((colName, index) => {
                     const dbColumn = headerMap[colName];
                     if (dbColumn) {

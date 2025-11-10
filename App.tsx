@@ -21,7 +21,7 @@ const MainLayout = ({ session }: { session: Session }) => (
     <main className="flex-1 p-6 md:p-8 overflow-y-auto">
       <Routes>
         <Route path="/" element={<CampaignsDashboard session={session} />} />
-        <Route path="/contacts" element={<ContactsView />} />
+        <Route path="/contacts" element={<ContactsView session={session} />} />
         <Route path="/sequences" element={<SequenceBuilder session={session} />} />
         <Route path="/domains" element={<DomainsView session={session} />} />
         <Route path="/inboxes" element={<InboxesView />} />
