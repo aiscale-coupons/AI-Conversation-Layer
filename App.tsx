@@ -10,7 +10,7 @@ import Sidebar from './components/Sidebar';
 import CampaignsDashboard from './components/CampaignsDashboard';
 import ContactsView from './components/ContactsView';
 import SequenceBuilder from './components/SequenceBuilder';
-import DomainsView from './components/DomainsView';
+import InfrastructureView from './components/InfrastructureView';
 import ResponseManager from './components/ResponseManager';
 import InboxesView from './components/InboxesView';
 import InboxConnect from './components/InboxConnect';
@@ -23,7 +23,7 @@ const MainLayout = ({ session }: { session: Session }) => (
         <Route path="/" element={<CampaignsDashboard session={session} />} />
         <Route path="/contacts" element={<ContactsView session={session} />} />
         <Route path="/sequences" element={<SequenceBuilder session={session} />} />
-        <Route path="/domains" element={<DomainsView session={session} />} />
+        <Route path="/infrastructure" element={<InfrastructureView session={session} />} />
         <Route path="/inboxes" element={<InboxesView />} />
         <Route path="/inbox-connect" element={<InboxConnect />} />
         <Route path="/responses" element={<ResponseManager />} />

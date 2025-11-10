@@ -38,14 +38,6 @@ const DomainsView = ({ session }: DomainsViewProps) => {
     const [inboxes, setInboxes] = React.useState<Inbox[]>([]);
     const [loading, setLoading] = React.useState(true);
     
-    // State for Add Inbox Modal
-    const [isInboxModalOpen, setIsInboxModalOpen] = React.useState(false);
-    const [newEmail, setNewEmail] = React.useState("");
-
-    // State for Add Domain Modal
-    const [isDomainModalOpen, setIsDomainModalOpen] = React.useState(false);
-    const [newDomainName, setNewDomainName] = React.useState("");
-
     // State for View Records Modal
     const [selectedDomain, setSelectedDomain] = React.useState<Domain | null>(null);
 
@@ -143,58 +135,17 @@ const DomainsView = ({ session }: DomainsViewProps) => {
         setVerifyingDomainId(null);
     };
 
-    const handleAddInbox = async () => {
-        if (!supabase || !session?.user) return;
-
-        const validation = inboxSchema.safeParse({ email: newEmail });
-        if (!validation.success) {
-            toast.error(validation.error.issues[0].message);
-            return;
-        }
-        
-        if (inboxes.some(inbox => inbox.email.toLowerCase() === newEmail.toLowerCase())) {
-            toast.error("This email address already exists.");
-            return;
-        }
-
-        const [_, domain] = newEmail.split('@');
-        
-        const newInboxData = {
-            email: newEmail,
-            domain: domain,
-            user_id: session.user.id, // FIX: Add the user_id to satisfy RLS policy
-            status: 'warming' as const,
-            daily_limit: 40,
-        };
-        
-        const { data: newInbox, error } = await supabase
-            .from('inboxes')
-            .insert(newInboxData)
-            .select()
-            .single();
-
-        if (error) {
-            console.error("Error adding inbox:", error.message);
-            if (error.code === '23505') {
-                toast.error("This email address already exists.");
-            } else {
-                toast.error(`Failed to add inbox: ${error.message}`);
-            }
-        } else if (newInbox) {
-            const formattedInbox = { ...newInbox, dailyLimit: newInbox.daily_limit };
-            setInboxes([...inboxes, formattedInbox]);
-            toast.success("Inbox added successfully!");
-            setIsInboxModalOpen(false);
-            setNewEmail("");
-        }
+    const handleConnectInbox = () => {
+        // Redirect to the google-auth-start Edge Function
+        window.location.href = 'https://ypxntquggvgjbukgzkjw.supabase.co/functions/v1/google-auth-start';
     };
 
     return (
         <div className="space-y-8">
             <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                <h2 className="text-3xl font-bold text-slate-900">Domains & Inboxes</h2>
-                <p className="text-slate-500 mt-1">Manage your sending infrastructure and deliverability.</p>
+                <h2 className="text-3xl font-bold text-slate-900">Infrastructure</h2>
+                <p className="text-slate-500 mt-1">Manage your sending domains and connected inboxes.</p>
                 </div>
             </header>
 
@@ -260,11 +211,11 @@ const DomainsView = ({ session }: DomainsViewProps) => {
             <div className="bg-white rounded-lg border border-slate-200/80">
                 <div className="p-5 flex justify-between items-center">
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-900">Inbox Pool</h3>
+                        <h3 className="text-lg font-semibold text-slate-900">Connected Inboxes</h3>
                         <p className="text-sm text-slate-500">Inboxes used for sending and rotation.</p>
                     </div>
-                    <button onClick={() => setIsInboxModalOpen(true)} className="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">
-                        Add Inbox
+                    <button onClick={handleConnectInbox} className="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                        Connect New Inbox
                     </button>
                 </div>
                 <div className="overflow-x-auto">
@@ -327,37 +278,6 @@ const DomainsView = ({ session }: DomainsViewProps) => {
                                 <div className="mt-6 flex justify-end gap-3">
                                     <button type="button" onClick={() => setIsDomainModalOpen(false)} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-md transition-colors">Cancel</button>
                                     <button type="button" onClick={handleAddDomain} className="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">Add Domain</button>
-                                </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition>
-
-            {/* Add Inbox Modal */}
-            <Transition appear show={isInboxModalOpen} as={React.Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={() => setIsInboxModalOpen(false)}>
-                    <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                        <div className="fixed inset-0 bg-black/30" />
-                    </Transition.Child>
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4 text-center">
-                        <Transition.Child as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">Add New Inbox</Dialog.Title>
-                                <div className="mt-4">
-                                    <input
-                                        type="email"
-                                        value={newEmail}
-                                        onChange={(e) => setNewEmail(e.target.value)}
-                                        placeholder="e.g., sales@yourdomain.com"
-                                        className="w-full bg-slate-50 border-slate-300 rounded-md shadow-sm p-2 text-slate-900 focus:ring-teal-500 focus:border-teal-500"
-                                    />
-                                </div>
-                                <div className="mt-6 flex justify-end gap-3">
-                                    <button type="button" onClick={() => setIsInboxModalOpen(false)} className="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold py-2 px-4 rounded-md transition-colors">Cancel</button>
-                                    <button type="button" onClick={handleAddInbox} className="bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-4 rounded-md transition-colors">Add Inbox</button>
                                 </div>
                             </Dialog.Panel>
                         </Transition.Child>

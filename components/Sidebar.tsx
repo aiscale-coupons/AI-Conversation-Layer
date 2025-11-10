@@ -40,7 +40,7 @@ const navItems: { path: string; label: string; icon: (props: IconProps) => React
     { path: '/', label: 'Campaigns', icon: LayoutDashboardIcon },
     { path: '/contacts', label: 'Contacts', icon: UsersIcon },
     { path: '/sequences', label: 'Sequences', icon: ListOrderedIcon },
-    { path: '/domains', label: 'Domains', icon: GlobeIcon },
+    { path: '/infrastructure', label: 'Infrastructure', icon: GlobeIcon },
     { path: '/inboxes', label: 'Inboxes', icon: MessageCircleReplyIcon },
     { path: '/responses', label: 'Response Manager', icon: MessageCircleReplyIcon },
 ];
