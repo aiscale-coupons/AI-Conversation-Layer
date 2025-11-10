@@ -5,7 +5,7 @@ export interface Campaign {
   id: number;
   created_at: string;
   name: string;
-  status: 'Active' | 'Paused' | 'Completed';
+  status: 'draft' | 'active' | 'paused' | 'completed';
   contacts: number;
   sent: number;
   open_rate: number;

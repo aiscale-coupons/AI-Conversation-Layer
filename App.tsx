@@ -12,6 +12,8 @@ import ContactsView from './components/ContactsView';
 import SequenceBuilder from './components/SequenceBuilder';
 import DomainsView from './components/DomainsView';
 import ResponseManager from './components/ResponseManager';
+import InboxesView from './components/InboxesView';
+import InboxConnect from './components/InboxConnect';
 
 const MainLayout = ({ session }: { session: Session }) => (
   <div className="flex h-screen bg-slate-100 text-slate-800">
@@ -22,6 +24,8 @@ const MainLayout = ({ session }: { session: Session }) => (
         <Route path="/contacts" element={<ContactsView />} />
         <Route path="/sequences" element={<SequenceBuilder session={session} />} />
         <Route path="/domains" element={<DomainsView session={session} />} />
+        <Route path="/inboxes" element={<InboxesView />} />
+        <Route path="/inbox-connect" element={<InboxConnect />} />
         <Route path="/responses" element={<ResponseManager />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

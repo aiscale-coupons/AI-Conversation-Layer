@@ -1,7 +1,24 @@
 import { Contact, IntentType } from '../types';
+import { supabase } from '../supabase/client';
 
 // Get the API base URL - use environment variable or default to current origin
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+export const startCampaign = async (campaignId: number): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase.rpc('start_campaign', { campaign_id_to_start: campaignId });
+
+    if (error) {
+      console.error('Error calling start_campaign RPC:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Unexpected error starting campaign:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 const getFallbackContent = (contact: Contact) => ({
     opener: "I was just looking into your company and was very impressed with your work in the industry.",

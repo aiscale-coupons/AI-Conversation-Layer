@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 import { CreateCampaignModal } from './CreateCampaignModal';
 import Spinner from './Spinner';
+import { startCampaign } from '../services/geminiService';
 
 const Card = ({ title, value, isLoading }: { title: string; value: string; isLoading?: boolean; }) => (
   <div className="bg-white rounded-lg p-5 border border-slate-200/80">
@@ -83,6 +84,20 @@ const CampaignsDashboard = ({ session }: CampaignsDashboardProps) => {
         setCampaigns([newCampaign, ...campaigns]);
     }
 
+    const handleActivateCampaign = async (campaignId: number) => {
+        toast.promise(
+            startCampaign(campaignId),
+            {
+                loading: 'Activating campaign...',
+                success: () => {
+                    fetchData(); // Refresh data to show updated status
+                    return 'Campaign activated successfully!';
+                },
+                error: (err) => `Failed to activate campaign: ${err.message}`,
+            }
+        );
+    };
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -138,11 +153,20 @@ const CampaignsDashboard = ({ session }: CampaignsDashboardProps) => {
                         <th scope="row" className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{campaign.name}</th>
                         <td className="px-6 py-4">
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                campaign.status === 'Active' ? 'bg-green-500/20 text-green-600' :
-                                campaign.status === 'Paused' ? 'bg-yellow-500/20 text-yellow-600' : 'bg-slate-500/20 text-slate-500'
+                                campaign.status === 'active' ? 'bg-green-500/20 text-green-600' :
+                                campaign.status === 'paused' ? 'bg-yellow-500/20 text-yellow-600' :
+                                campaign.status === 'completed' ? 'bg-blue-500/20 text-blue-600' : 'bg-slate-500/20 text-slate-500'
                             }`}>
                                 {campaign.status}
                             </span>
+                            {campaign.status === 'draft' && (
+                                <button
+                                    onClick={() => handleActivateCampaign(campaign.id)}
+                                    className="ml-2 px-3 py-1 text-xs font-medium text-white bg-teal-600 rounded-md hover:bg-teal-500 transition-colors"
+                                >
+                                    Activate
+                                </button>
+                            )}
                         </td>
                         <td className="px-6 py-4">{campaign.contacts}</td>
                         <td className="px-6 py-4">{campaign.sent}</td>
