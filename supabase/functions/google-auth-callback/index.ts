@@ -45,22 +45,29 @@ serve(async (req) => {
     );
   }
 
-  // Initialize Supabase client for database operations
+  // Initialize Supabase client with the user's auth token to validate the JWT
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: `Bearer ${state}` } } }
   );
 
-  // Verify state (CSRF protection) - ensure it matches the authenticated user's ID
-  const { data: { user }, error: userError } = await supabase.auth.getUser(req.headers.get("Authorization")?.split(" ")[1]);
+  // Verify state (CSRF protection) - the state is the user's JWT
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (userError || !user || user.id !== state) {
-    console.error("State mismatch or user not authenticated:", userError?.message || "State mismatch");
+  if (userError || !user) {
+    console.error("Authentication error:", userError?.message);
     return new Response(null, {
       status: 302,
       headers: { Location: `${FRONTEND_URL}/inbox-connect?error=authentication_failed` },
     });
   }
+
+  // Now, create a service role client to perform admin tasks
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
 
   try {
     // Exchange authorization code for tokens
@@ -105,7 +112,7 @@ serve(async (req) => {
     }
 
     // Save tokens and inbox info to the database
-    const { data, error: dbError } = await supabase
+    const { data, error: dbError } = await supabaseAdmin
       .from("inboxes")
       .upsert(
         {
@@ -118,7 +125,7 @@ serve(async (req) => {
           expires_at: expires_at.toISOString(),
           is_connected: true,
         },
-        { onConflict: 'email', ignoreDuplicates: false } // Update if inbox email already exists for this user
+        { onConflict: 'user_id,email', ignoreDuplicates: false } // Update if inbox email already exists for this user
       )
       .select();
 

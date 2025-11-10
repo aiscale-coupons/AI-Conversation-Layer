@@ -26,7 +26,12 @@ const InboxesView = () => {
 
     const handleConnectInbox = () => {
         // Redirect to the google-auth-start Edge Function
-        window.location.href = 'https://ypxntquggvgjbukgzkjw.supabase.co/functions/v1/google-auth-start';
+        const functionsUrl = import.meta.env.VITE_SUPABASE_FUNCTIONS_URL;
+        if (!functionsUrl) {
+            toast.error("Functions URL is not configured. Please check your environment variables.");
+            return;
+        }
+        window.location.href = `${functionsUrl}/google-auth-start`;
     };
 
     return (

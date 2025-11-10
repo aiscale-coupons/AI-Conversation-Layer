@@ -25,7 +25,8 @@ serve(async (req) => {
     { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
   )
 
-  const { data: { user } } = await client.auth.getUser()
+  const authHeader = req.headers.get('Authorization')!;
+  const jwt = authHeader.replace('Bearer ', '');
 
   if (!user) {
     return new Response(JSON.stringify({ error: 'User not authenticated' }), {
@@ -50,7 +51,7 @@ serve(async (req) => {
     );
   }
 
-  const state = user.id; // Use user ID as state to prevent CSRF
+  const state = jwt; // Use user's JWT as state to prevent CSRF
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
