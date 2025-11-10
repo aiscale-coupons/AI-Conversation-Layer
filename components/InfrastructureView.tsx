@@ -119,8 +119,9 @@ const InfrastructureView = ({ session }: InfrastructureViewProps) => {
         setVerifyingDomainId(domainToVerify.id);
         const toastId = toast.loading(`Verifying ${domainToVerify.name}...`);
         
-        // Simulate a backend call to a service that checks DNS records.
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // In a real implementation, you would invoke an Edge Function here
+        // that performs actual DNS lookups for SPF, DKIM, and DMARC records.
+        // For this version, we will just mark them as verified in the database.
 
         const { data: updatedDomain, error } = await supabase
             .from('domains')

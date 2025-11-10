@@ -35,21 +35,27 @@ const CampaignsDashboard = ({ session }: CampaignsDashboardProps) => {
         if (!supabase) return;
         setLoading(true);
 
+        // Fetch campaign stats using the new RPC function
         const { data: campaignsData, error: campaignsError } = await supabase
-            .from('campaigns')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .rpc('get_campaign_stats');
 
         if (campaignsError) {
-            console.error('Error fetching campaigns:', campaignsError);
-            toast.error("Could not fetch campaigns.");
+            console.error('Error fetching campaign stats:', campaignsError);
+            toast.error("Could not fetch campaign stats.");
         } else if (campaignsData) {
-            setCampaigns(campaignsData);
+            // Format the data to match the Campaign type, ensuring numeric types
+            const formattedCampaigns = campaignsData.map(c => ({
+                ...c,
+                open_rate: parseFloat(c.open_rate || 0).toFixed(1),
+                reply_rate: parseFloat(c.reply_rate || 0).toFixed(1),
+            }));
+            setCampaigns(formattedCampaigns);
 
-            const totalSent = campaignsData.reduce((acc, c) => acc + c.sent, 0);
-            const campaignsWithSends = campaignsData.filter(c => c.sent > 0);
-            const avgOpen = campaignsWithSends.length > 0 ? campaignsWithSends.reduce((acc, c) => acc + c.open_rate, 0) / campaignsWithSends.length : 0;
-            const avgReply = campaignsWithSends.length > 0 ? campaignsWithSends.reduce((acc, c) => acc + c.reply_rate, 0) / campaignsWithSends.length : 0;
+            // Calculate overall stats from the fetched data
+            const totalSent = formattedCampaigns.reduce((acc, c) => acc + c.sent, 0);
+            const campaignsWithSends = formattedCampaigns.filter(c => c.sent > 0);
+            const avgOpen = campaignsWithSends.length > 0 ? campaignsWithSends.reduce((acc, c) => acc + parseFloat(c.open_rate), 0) / campaignsWithSends.length : 0;
+            const avgReply = campaignsWithSends.length > 0 ? campaignsWithSends.reduce((acc, c) => acc + parseFloat(c.reply_rate), 0) / campaignsWithSends.length : 0;
             
             const { count: positiveRepliesCount } = await supabase
                 .from('replies')
@@ -64,6 +70,7 @@ const CampaignsDashboard = ({ session }: CampaignsDashboardProps) => {
             });
         }
 
+        // Fetch sequences and contact lists for the "Create Campaign" modal
         const { data: sequencesData, error: sequencesError } = await supabase.from('sequences').select('id, name');
         if (sequencesError) console.error(sequencesError);
         else setSequences(sequencesData || []);
