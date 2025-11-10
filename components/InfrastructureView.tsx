@@ -38,6 +38,10 @@ const InfrastructureView = ({ session }: InfrastructureViewProps) => {
     const [inboxes, setInboxes] = React.useState<Inbox[]>([]);
     const [loading, setLoading] = React.useState(true);
     
+    // State for Add Domain Modal
+    const [isDomainModalOpen, setIsDomainModalOpen] = React.useState(false);
+    const [newDomainName, setNewDomainName] = React.useState("");
+
     // State for View Records Modal
     const [selectedDomain, setSelectedDomain] = React.useState<Domain | null>(null);
 
