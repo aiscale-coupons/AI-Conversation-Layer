@@ -39,6 +39,7 @@ const MessageCircleReplyIcon = ({ className }: IconProps) => (
 const navItems: { path: string; label: string; icon: (props: IconProps) => React.ReactElement }[] = [
     { path: '/', label: 'Campaigns', icon: LayoutDashboardIcon },
     { path: '/contacts', label: 'Contacts', icon: UsersIcon },
+    { path: '/contact-lists', label: 'Contact Lists', icon: UsersIcon },
     { path: '/sequences', label: 'Sequences', icon: ListOrderedIcon },
     { path: '/infrastructure', label: 'Infrastructure', icon: GlobeIcon },
     { path: '/inboxes', label: 'Inboxes', icon: MessageCircleReplyIcon },

@@ -14,6 +14,7 @@ import InfrastructureView from './components/InfrastructureView';
 import ResponseManager from './components/ResponseManager';
 import InboxesView from './components/InboxesView';
 import InboxConnect from './components/InboxConnect';
+import ContactListsView from './components/ContactListsView';
 
 const MainLayout = ({ session }: { session: Session }) => (
   <div className="flex h-screen bg-slate-100 text-slate-800">
@@ -22,6 +23,7 @@ const MainLayout = ({ session }: { session: Session }) => (
       <Routes>
         <Route path="/" element={<CampaignsDashboard session={session} />} />
         <Route path="/contacts" element={<ContactsView session={session} />} />
+        <Route path="/contact-lists" element={<ContactListsView />} />
         <Route path="/sequences" element={<SequenceBuilder session={session} />} />
         <Route path="/infrastructure" element={<InfrastructureView session={session} />} />
         <Route path="/inboxes" element={<InboxesView />} />

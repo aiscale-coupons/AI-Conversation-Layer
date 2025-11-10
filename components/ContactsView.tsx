@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Contact } from '../types';
+import { Contact, ContactList } from '../types';
 import { supabase } from '../supabase/client';
 import toast from 'react-hot-toast';
 import DOMPurify from 'dompurify';
@@ -17,11 +17,53 @@ interface ContactsViewProps {
     session: Session;
 }
 
+const AddToListModal = ({ isOpen, onClose, contact, lists, onAddToList }: { isOpen: boolean, onClose: () => void, contact: Contact | null, lists: ContactList[], onAddToList: (listId: number) => void }) => {
+    const [selectedList, setSelectedList] = React.useState<number | null>(null);
+
+    if (!isOpen || !contact) return null;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedList) {
+            onAddToList(selectedList);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white rounded-lg p-8 w-full max-w-md">
+                <h2 className="text-xl font-bold mb-4">Add {contact.firstName} to a list</h2>
+                <form onSubmit={handleSubmit}>
+                    <select
+                        value={selectedList || ''}
+                        onChange={(e) => setSelectedList(Number(e.target.value))}
+                        className="w-full p-2 border rounded"
+                        required
+                    >
+                        <option value="" disabled>Select a list</option>
+                        {lists.map(list => (
+                            <option key={list.id} value={list.id}>{list.name}</option>
+                        ))}
+                    </select>
+                    <div className="mt-6 flex justify-end gap-4">
+                        <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-slate-200 text-slate-800 hover:bg-slate-300">Cancel</button>
+                        <button type="submit" className="px-4 py-2 rounded bg-teal-600 text-white hover:bg-teal-500">Add to List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+
 const ContactsView = ({ session }: ContactsViewProps) => {
   const [contacts, setContacts] = React.useState<Contact[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [file, setFile] = React.useState<File | null>(null);
   const [isImporting, setIsImporting] = React.useState(false);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
+  const [contactLists, setContactLists] = React.useState<ContactList[]>([]);
 
   const fetchContacts = async () => {
     if (!supabase) return;
@@ -49,8 +91,19 @@ const ContactsView = ({ session }: ContactsViewProps) => {
     setLoading(false);
   };
 
+  const fetchContactLists = async () => {
+    if (!supabase) return;
+    const { data, error } = await supabase.from('contact_lists').select('id, name');
+    if (error) {
+        console.error('Error fetching contact lists:', error);
+    } else {
+        setContactLists(data || []);
+    }
+  };
+
   React.useEffect(() => {
     fetchContacts();
+    fetchContactLists();
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,6 +196,28 @@ const ContactsView = ({ session }: ContactsViewProps) => {
     reader.readAsText(file);
   };
 
+  const openAddToListModal = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsModalOpen(true);
+  };
+
+  const handleAddToContactList = async (listId: number) => {
+    if (!supabase || !selectedContact) return;
+
+    const { error } = await supabase.from('contact_list_members').insert({
+        contact_id: selectedContact.id,
+        contact_list_id: listId,
+    });
+
+    if (error) {
+        toast.error(`Failed to add contact to list: ${error.message}`);
+    } else {
+        toast.success(`${selectedContact.firstName} added to list!`);
+        setIsModalOpen(false);
+        setSelectedContact(null);
+    }
+  };
+
 
   return (
     <div className="space-y-8">
@@ -182,12 +257,13 @@ const ContactsView = ({ session }: ContactsViewProps) => {
                     <th scope="col" className="px-6 py-3">Industry</th>
                     <th scope="col" className="px-6 py-3">Email</th>
                     <th scope="col" className="px-6 py-3">Pain Point Signal</th>
+                    <th scope="col" className="px-6 py-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {loading ? (
                         <tr>
-                            <td colSpan={5} className="p-8">
+                            <td colSpan={6} className="p-8">
                                 <div className="flex justify-center items-center">
                                     <Spinner />
                                 </div>
@@ -201,6 +277,9 @@ const ContactsView = ({ session }: ContactsViewProps) => {
                             <td className="px-6 py-4">{contact.industry}</td>
                             <td className="px-6 py-4">{contact.email}</td>
                             <td className="px-6 py-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contact.painPointSignal) }}></td>
+                            <td className="px-6 py-4">
+                                <button onClick={() => openAddToListModal(contact)} className="text-teal-600 hover:text-teal-800 font-semibold">Add to List</button>
+                            </td>
                         </tr>
                         ))
                     )}
@@ -208,6 +287,13 @@ const ContactsView = ({ session }: ContactsViewProps) => {
             </table>
         </div>
       </div>
+      <AddToListModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        contact={selectedContact}
+        lists={contactLists}
+        onAddToList={handleAddToContactList}
+      />
     </div>
   );
 };

@@ -70,14 +70,26 @@ const CampaignsDashboard = ({ session }: CampaignsDashboardProps) => {
             });
         }
 
-        // Fetch sequences and contact lists for the "Create Campaign" modal
+        // Fetch sequences for the "Create Campaign" modal
         const { data: sequencesData, error: sequencesError } = await supabase.from('sequences').select('id, name');
         if (sequencesError) console.error(sequencesError);
         else setSequences(sequencesData || []);
 
-        const { count: contactCount, error: contactError } = await supabase.from('contacts').select('*', { count: 'exact', head: true });
-        if (contactError) console.error(contactError);
-        else setContactLists([{ name: `All Contacts`, count: contactCount || 0 }]);
+        // Fetch contact lists with member counts
+        const { data: listsData, error: listsError } = await supabase
+            .from('contact_lists')
+            .select('id, name, members:contact_list_members(count)');
+        
+        if (listsError) {
+            console.error('Error fetching contact lists:', listsError);
+        } else if (listsData) {
+            const formattedLists = listsData.map((list: any) => ({
+                id: list.id,
+                name: list.name,
+                count: list.members[0]?.count || 0,
+            }));
+            setContactLists(formattedLists);
+        }
         
         setLoading(false);
     };
