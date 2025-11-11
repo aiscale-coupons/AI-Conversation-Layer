@@ -1,6 +1,6 @@
 -- Create the table for contact lists
 CREATE TABLE "public"."contact_lists" (
-    "id" bigint NOT NULL,
+    "id" bigserial NOT NULL,
     "user_id" "uuid" DEFAULT "auth"."uid"() NOT NULL,
     "name" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
@@ -9,7 +9,7 @@ CREATE TABLE "public"."contact_lists" (
 ALTER TABLE "public"."contact_lists" OWNER TO "postgres";
 
 -- Create the sequence for the primary key
-CREATE SEQUENCE "public"."contact_lists_id_seq"
+CREATE SEQUENCE IF NOT EXISTS "public"."contact_lists_id_seq"
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -31,8 +31,8 @@ ALTER TABLE ONLY "public"."contact_lists"
 
 -- Create the join table for contacts and contact lists
 CREATE TABLE "public"."contact_list_members" (
-    "contact_id" "bigint" NOT NULL,
-    "contact_list_id" "bigint" NOT NULL,
+    "contact_id" bigserial NOT NULL,
+    "contact_list_id" bigserial NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
