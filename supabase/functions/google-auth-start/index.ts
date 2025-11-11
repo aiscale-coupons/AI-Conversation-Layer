@@ -25,6 +25,8 @@ serve(async (req) => {
     { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
   )
 
+  const { data: { user } } = await client.auth.getUser()
+
   const authHeader = req.headers.get('Authorization')!;
   const jwt = authHeader.replace('Bearer ', '');
 
