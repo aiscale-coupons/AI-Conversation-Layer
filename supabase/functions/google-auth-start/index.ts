@@ -1,8 +1,6 @@
-// Supabase Edge Function: google-auth-start
-// This function initiates the Google OAuth 2.0 flow.
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.42.0";
+import { corsHeaders } from "../_shared/cors.ts";
 
 const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
 const GOOGLE_REDIRECT_URI = Deno.env.get("GOOGLE_REDIRECT_URI");
@@ -10,12 +8,7 @@ const GOOGLE_REDIRECT_URI = Deno.env.get("GOOGLE_REDIRECT_URI");
 serve(async (req) => {
   // Handle preflight OPTIONS request first
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
-    })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   // This is needed to invoke the function as a user
@@ -33,23 +26,14 @@ serve(async (req) => {
   if (!user) {
     return new Response(JSON.stringify({ error: 'User not authenticated' }), {
       status: 401,
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
   }
 
   if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
     return new Response(
       JSON.stringify({ error: "Google OAuth credentials are not configured." }),
-      { status: 500, headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        } 
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     );
   }
 
@@ -68,10 +52,11 @@ serve(async (req) => {
   authUrl.searchParams.set("prompt", "consent");
   authUrl.searchParams.set("state", state);
 
-  return new Response(null, {
-    status: 302,
+  return new Response(JSON.stringify({ authUrl: authUrl.toString() }), {
+    status: 200,
     headers: {
-      Location: authUrl.toString(),
+      'Content-Type': 'application/json',
+      ...corsHeaders
     },
   });
 });

@@ -150,18 +150,24 @@ const InfrastructureView = ({ session }: InfrastructureViewProps) => {
         }
 
         try {
-            const response = await fetch('https://ypxntquggvgjbukgzkjw.supabase.co/functions/v1/google-auth-start', {
+            // The Vercel URL for the function. For local dev, you might need to point this to localhost.
+            const functionUrl = `${import.meta.env.VITE_API_BASE_URL || 'https://ypxntquggvgjbukgzkjw.supabase.co'}/functions/v1/google-auth-start`;
+            
+            const response = await fetch(functionUrl, {
+                method: 'POST', // Explicitly use POST, or GET if your function supports it
                 headers: {
                     'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json'
                 },
             });
 
-            if (response.ok && response.redirected) {
-                window.location.href = response.url;
+            const data = await response.json();
+
+            if (response.ok && data.authUrl) {
+                window.location.href = data.authUrl;
             } else {
-                const errorData = await response.json();
-                console.error('Error from google-auth-start:', errorData);
-                toast.error(`Failed to start inbox connection: ${errorData.error || 'Unknown error'}`);
+                console.error('Error from google-auth-start:', data);
+                toast.error(`Failed to start inbox connection: ${data.error || 'Unknown error'}`);
             }
         } catch (error) {
             toast.error("An unexpected error occurred. See console for details.");
